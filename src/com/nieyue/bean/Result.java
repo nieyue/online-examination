@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 考试成绩
@@ -54,6 +55,16 @@ public class Result implements Serializable{
      */
     @ApiModelProperty(value="账户id外键")
     private Integer accountId;
+    /**
+     * 选择题成绩列表
+     */
+    @ApiModelProperty(value="选择题成绩列表")
+    private List<ResultChoice> resultChoiceList;
+    /**
+     * 阅读理解成绩列表
+     */
+    @ApiModelProperty(value="阅读理解成绩列表")
+    private List<ResultReading> resultReadingList;
 
 }
 

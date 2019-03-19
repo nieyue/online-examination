@@ -89,7 +89,7 @@ WHERE result_id=#{resultId}
 			AND  account_id=#{accountId}
 		</if>
 		<if test="endDate!=null">
-			AND  end_date<![CDATA[<= ]]>#{endDate}
+			<![CDATA[	AND  DATE_FORMAT(end_date, '%Y-%m-%d %T') <= DATE_FORMAT(#{endDate}, '%Y-%m-%d %T') ]]>
 		</if>
 		AND ${orderName}
 		<if test="orderWay=='asc'">
@@ -104,7 +104,7 @@ WHERE result_id=#{resultId}
 					AND  account_id=#{accountId}
 				</if>
 				<if test="endDate!=null">
-					AND  end_date<![CDATA[<= ]]>#{endDate}
+					<![CDATA[	AND  DATE_FORMAT(end_date, '%Y-%m-%d %T') <= DATE_FORMAT(#{endDate}, '%Y-%m-%d %T') ]]>
 				</if>
 			</where>
 			ORDER BY
@@ -128,7 +128,7 @@ WHERE result_id=#{resultId}
 			AND  account_id=#{accountId}
 		</if>
 		<if test="endDate!=null">
-			AND  end_date<![CDATA[<= ]]>#{endDate}
+			<![CDATA[	AND  DATE_FORMAT(end_date, '%Y-%m-%d %T') <= DATE_FORMAT(#{endDate}, '%Y-%m-%d %T') ]]>
 		</if>
 	</where>
 </select>   

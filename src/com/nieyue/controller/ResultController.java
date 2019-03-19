@@ -1,18 +1,16 @@
 package com.nieyue.controller;
 
-import com.nieyue.bean.Choice;
-import com.nieyue.bean.Result;
+import com.nieyue.bean.*;
 import com.nieyue.exception.NotAnymoreException;
 import com.nieyue.exception.NotIsNotExistException;
-import com.nieyue.service.ChoiceService;
-import com.nieyue.service.ReadingService;
-import com.nieyue.service.ResultService;
+import com.nieyue.service.*;
 import com.nieyue.util.ResultUtil;
 import com.nieyue.util.StateResultList;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +18,7 @@ import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 
 
 /**
@@ -37,6 +36,10 @@ public class ResultController {
 	private ChoiceService choiceService;
 	@Autowired
 	private ReadingService readingService;
+	@Autowired
+	private ResultChoiceService resultChoiceService;
+	@Autowired
+	private ResultReadingService resultReadingService;
 
 	/**
 	 * 考试成绩分页浏览
@@ -64,6 +67,18 @@ public class ResultController {
 		List<Result> list = new ArrayList<Result>();
 		list= resultService.list(accountId,endDate,pageNum, pageSize, orderName, orderWay);
 		if(list.size()>0){
+			for (int i = 0; i < list.size(); i++) {
+				Result result = list.get(i);
+				List<ResultChoice> resultChoiceList = resultChoiceService.list(0, result.getResultId(), 1, Integer.MAX_VALUE, "result_choice_id", "asc");
+				result.setResultChoiceList(resultChoiceList);
+				List<ResultReading> resultReadingList = resultReadingService.list(result.getResultId(), 1, Integer.MAX_VALUE, "result_reading_id", "asc");
+				for (int j = 0; j < resultReadingList.size(); j++) {
+					ResultReading resultReading = resultReadingList.get(j);
+					List<ResultChoice> rcl= resultChoiceService.list(resultReading.getResultReadingId(), result.getResultId(), 1, Integer.MAX_VALUE, "result_choice_id", "asc");
+					resultReading.setResultChoiceList(rcl);
+				}
+				result.setResultReadingList(resultReadingList);
+			}
 			return ResultUtil.getSlefSRSuccessList(list);
 		}else{
 			throw new NotAnymoreException();//没有更多
@@ -91,7 +106,7 @@ public class ResultController {
 	@ApiOperation(value = "考试", notes = "考试")
 	@RequestMapping(value = "/start", method = {RequestMethod.GET,RequestMethod.POST})
 	public @ResponseBody StateResultList<List<Result>> start(@ModelAttribute Result result, HttpSession session) {
-		int count = resultService.count(result.getAccountId(), result.getEndDate());
+		int count = resultService.count(result.getAccountId(), new Date());
 		if(count>0){
 		//如果小于结束时间还存在有，便是在考试，不能新增
 			return ResultUtil.getSlefSRFailList(null);
@@ -102,8 +117,59 @@ public class ResultController {
 		result.setEndDate(new Date(new Date().getTime()+60*60*1000));
 		boolean am = resultService.add(result);
 		//获取选择题，10个
-		List<Choice> choiceList = choiceService.list(0, null, 1, 10, "choice_id", "asc");
+		int choiceNumber = choiceService.count(0, null);
+		int startChoiceNumber=1;
+		int mastChoiceNumber=10;
+		if(choiceNumber>mastChoiceNumber){
+			startChoiceNumber=new Random().nextInt((choiceNumber-mastChoiceNumber));
+		}
+		List<Choice> choiceList = choiceService.list(0, null, startChoiceNumber, mastChoiceNumber, "choice_id", "asc");
+		//添加选择题
+		for (int i = 0; i <choiceList.size() ; i++) {
+			Choice choice = choiceList.get(i);
+			ResultChoice resultChoice=new ResultChoice();
+			resultChoice.setA(choice.getA());
+			resultChoice.setB(choice.getB());
+			resultChoice.setC(choice.getC());
+			resultChoice.setD(choice.getD());
+			resultChoice.setCorrect(choice.getCorrect());
+			resultChoice.setQuestion(choice.getQuestion());
+			resultChoice.setResultId(result.getResultId());
+			resultChoice.setResultReadingId(0);//0代表不是阅读理解
+			resultChoiceService.add(resultChoice);
+		}
 
+		//获取2个阅读理解，每题5个
+		int readingNumber = readingService.count();
+		int startReadingNumber=1;
+		int mastReadingNumber=2;
+		if(readingNumber>mastReadingNumber){
+			startReadingNumber=new Random().nextInt((readingNumber-mastReadingNumber));
+		}
+		//添加阅读理解
+		List<Reading> readingList = readingService.list(startReadingNumber, mastReadingNumber, "reading_id", "asc");
+		for (int i = 0; i <readingList.size() ; i++) {
+			Reading reading = readingList.get(i);
+			ResultReading resultReading=new ResultReading();
+			resultReading.setContent(reading.getContent());
+			resultReading.setResultId(result.getResultId());
+			resultReadingService.add(resultReading);
+			//添加阅读理解的选择题
+			List<Choice> cl = choiceService.list(reading.getReadingId(), null, 1, Integer.MAX_VALUE, "choice_id", "asc");
+			for (int j = 0; j < cl.size(); j++) {
+				Choice c = cl.get(j);
+				ResultChoice resultChoice=new ResultChoice();
+				resultChoice.setA(c.getA());
+				resultChoice.setB(c.getB());
+				resultChoice.setC(c.getC());
+				resultChoice.setD(c.getD());
+				resultChoice.setCorrect(c.getCorrect());
+				resultChoice.setQuestion(c.getQuestion());
+				resultChoice.setResultId(result.getResultId());
+				resultChoice.setResultReadingId(resultReading.getResultReadingId());//是阅读理解
+				resultChoiceService.add(resultChoice);
+			}
+		}
 		if(am){
 			List<Result> list = new ArrayList<>();
 			list.add(result);
@@ -177,6 +243,15 @@ public class ResultController {
 		List<Result> list = new ArrayList<>();
 		Result result = resultService.load(resultId);
 			if(result!=null &&!result.equals("")){
+				List<ResultChoice> resultChoiceList = resultChoiceService.list(0, result.getResultId(), 1, Integer.MAX_VALUE, "result_choice_id", "asc");
+				result.setResultChoiceList(resultChoiceList);
+				List<ResultReading> resultReadingList = resultReadingService.list(result.getResultId(), 1, Integer.MAX_VALUE, "result_reading_id", "asc");
+				for (int j = 0; j < resultReadingList.size(); j++) {
+					ResultReading resultReading = resultReadingList.get(j);
+					List<ResultChoice> rcl= resultChoiceService.list(resultReading.getResultReadingId(), result.getResultId(), 1, Integer.MAX_VALUE, "result_choice_id", "asc");
+					resultReading.setResultChoiceList(rcl);
+				}
+				result.setResultReadingList(resultReadingList);
 				list.add(result);
 				return ResultUtil.getSlefSRSuccessList(list);
 			}else{
