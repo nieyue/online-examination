@@ -132,9 +132,6 @@ WHERE result_choice_id=#{resultChoiceId}
 		<if test="resultId!=null">
 			AND  result_id=#{resultId}
 		</if>
-		<if test="correct!=null">
-			AND  correct=#{correct}
-		</if>
 		AND ${orderName}
 		<if test="orderWay=='asc'">
 		<![CDATA[>=]]>
@@ -149,9 +146,6 @@ WHERE result_choice_id=#{resultChoiceId}
 				</if>
 				<if test="resultId!=null">
 					AND  result_id=#{resultId}
-				</if>
-				<if test="correct!=null">
-					AND  correct=#{correct}
 				</if>
 			</where>
 			ORDER BY
@@ -176,9 +170,6 @@ WHERE result_choice_id=#{resultChoiceId}
 		</if>
 		<if test="resultId!=null">
 			AND  result_id=#{resultId}
-		</if>
-		<if test="correct!=null">
-			AND  correct=#{correct}
 		</if>
 	</where>
 </select>   

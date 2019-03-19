@@ -257,7 +257,7 @@ var business={
 					//console.log(data.data.total)
 					params.total=data.data[0];
 					if(p.isClear&&params.total<=0 ){
-						myUtils.myLoadingToast("暂无数据")
+						//myUtils.myLoadingToast("暂无数据")
 						//清空table body
 						$("#tableTbody").html("");
 						//隐藏分页
@@ -288,7 +288,7 @@ var business={
 				                         p.success(business[p.data]);
 				                        }
 									}else{
-										myUtils.myLoadingToast("暂无数据")
+										//myUtils.myLoadingToast("暂无数据")
 									}
 						},
 						error:function(){
