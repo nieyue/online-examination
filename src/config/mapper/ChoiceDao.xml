@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">  
+<mapper namespace="com.nieyue.dao.ChoiceDao">
+<!-- 添加 -->
+<insert id="add" parameterType="Choice" keyProperty="choiceId" flushCache="true"  >
+   INSERT IGNORE INTO
+   		  choice_tb
+   		 (
+   		 score,
+   		 question,
+   		 a,
+   		 b,
+   		 c,
+   		 d,
+   		 correct,
+   		 create_date,
+   		 update_date,
+   		 reading_id
+   		 )
+   VALUES
+    	 (
+    	 #{score},
+    	 #{question},
+    	 #{a},
+    	 #{b},
+    	 #{c},
+    	 #{d},
+    	 #{correct},
+    	 #{createDate},
+    	 #{updateDate},
+    	 #{readingId}
+    	 )
+</insert>  
+<!-- 更新 -->
+<update id="update" parameterType="Choice" >
+    UPDATE 
+    	choice_tb
+	<set>
+		<if test="score!=null">
+			score=#{score},
+		</if>
+		<if test="question!=null">
+			question=#{question},
+		</if>
+		<if test="a!=null">
+			a=#{a},
+		</if>
+		<if test="b!=null">
+			b=#{b},
+		</if>
+		<if test="c!=null">
+			c=#{c},
+		</if>
+		<if test="d!=null">
+			d=#{d},
+		</if>
+		<if test="correct!=null">
+			correct=#{correct},
+		</if>
+		<if test="createDate!=null">
+			create_date=#{createDate},
+		</if>
+		<if test="updateDate!=null">
+			update_date=#{updateDate},
+		</if>
+		<if test="readingId!=null">
+			reading_id=#{readingId},
+		</if>
+	</set>
+    WHERE
+    	 choice_id=#{choiceId}
+</update> 
+<!-- 删除-->
+<delete id="delete"  parameterType="Integer" >
+    DELETE FROM
+    	 choice_tb
+    	 WHERE choice_id=#{choiceId}
+</delete>  
+<!-- 加载-->
+<select id="load" parameterType="Integer" resultType="Choice" >
+SELECT 
+		 choice_id,
+	 	 score,
+   		 question,
+   		 a,
+   		 b,
+   		 c,
+   		 d,
+   		 correct,
+   		 create_date,
+   		 update_date,
+   		 reading_id
+FROM choice_tb
+WHERE choice_id=#{choiceId}
+</select>
+
+<!-- 列表-->
+<select id="list" resultType="Choice">
+        SELECT
+	    choice_id,
+		score,
+		question,
+		a,
+		b,
+		c,
+		d,
+		correct,
+		create_date,
+		update_date,
+		reading_id
+	FROM choice_tb
+	<where>
+		<if test="readingId!=null">
+			AND  reading_id=#{readingId}
+		</if>
+		<if test="correct!=null">
+			AND  correct=#{correct}
+		</if>
+		AND ${orderName}
+		<if test="orderWay=='asc'">
+		<![CDATA[>=]]>
+		</if>
+		<if test="orderWay=='desc'">
+		  <![CDATA[<= ]]>
+		</if>
+		(SELECT ${orderName} FROM choice_tb
+			<where>
+				<if test="readingId!=null">
+					AND  reading_id=#{readingId}
+				</if>
+				<if test="correct!=null">
+					AND  correct=#{correct}
+				</if>
+			</where>
+			ORDER BY
+				${orderName}  ${orderWay}
+			LIMIT #{pageNum}, 1
+			)
+	</where>
+		ORDER BY
+			${orderName}  ${orderWay}
+		LIMIT
+			#{pageSize}
+</select> 
+
+<!-- 数目 -->
+<select id="count"  resultType="int">
+	SELECT
+	 	count(choice_id)
+	FROM choice_tb
+	<where>
+		<if test="readingId!=null">
+			AND  reading_id=#{readingId}
+		</if>
+		<if test="correct!=null">
+			AND  correct=#{correct}
+		</if>
+	</where>
+</select>   
+   
+ 
+</mapper>

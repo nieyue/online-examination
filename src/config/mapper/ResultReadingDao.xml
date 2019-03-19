@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">  
+<mapper namespace="com.nieyue.dao.ResultReadingDao">
+<!-- 添加 -->
+<insert id="add" parameterType="ResultReading" keyProperty="resultReadingId" flushCache="true"  >
+   INSERT IGNORE INTO
+   		  result_reading_tb
+   		 (
+   		 content,
+   		 create_date,
+   		 update_date,
+   		 result_id
+   		 )
+   VALUES
+    	 (
+    	 #{content},
+    	 #{createDate},
+    	 #{updateDate},
+    	 #{resultId}
+    	 )
+</insert>  
+<!-- 更新 -->
+<update id="update" parameterType="ResultReading" >
+    UPDATE
+	result_reading_tb
+    <set>
+		<if test="content!=null">
+			content=#{content},
+		</if>
+		<if test="createDate!=null">
+			create_date=#{createDate},
+		</if>
+		<if test="updateDate!=null">
+			update_date=#{updateDate},
+		</if>
+		<if test="resultId!=null">
+			result_id=#{resultId},
+		</if>
+	</set>
+    WHERE
+	result_reading_id=#{resultReadingId}
+</update> 
+<!-- 删除-->
+<delete id="delete"  parameterType="Integer" >
+    DELETE FROM
+    	 result_reading_tb
+    	 WHERE result_reading_id=#{resultReadingId}
+</delete>  
+<!-- 加载-->
+<select id="load" parameterType="Integer" resultType="ResultReading" >
+SELECT 
+		result_reading_id,
+	 	content,
+   		 create_date,
+   		 update_date,
+   		 result_id
+FROM result_reading_tb
+WHERE result_reading_id=#{resultReadingId}
+</select>
+
+<!-- 列表-->
+<select id="list" resultType="ResultReading">
+        SELECT
+		result_reading_id,
+		content,
+		create_date,
+		update_date,
+		result_id
+	FROM result_reading_tb
+	<where>
+		<if test="resultId!=null">
+			AND  result_id=#{resultId}
+		</if>
+		AND ${orderName}
+		<if test="orderWay=='asc'">
+		<![CDATA[>=]]>
+		</if>
+		<if test="orderWay=='desc'">
+		  <![CDATA[<= ]]>
+		</if>
+		(SELECT ${orderName} FROM result_reading_tb
+			<where>
+				<if test="resultId!=null">
+					AND  result_id=#{resultId}
+				</if>
+			</where>
+			ORDER BY
+				${orderName}  ${orderWay}
+			LIMIT #{pageNum}, 1
+			)
+	</where>
+	ORDER BY
+		${orderName}  ${orderWay}
+	LIMIT
+		#{pageSize}
+</select> 
+
+<!-- 数目 -->
+<select id="count"  resultType="int">
+	SELECT
+	 	count(result_reading_id)
+	FROM result_reading_tb
+	<where>
+		<if test="resultId!=null">
+			AND  result_id=#{resultId}
+		</if>
+	</where>
+</select>   
+   
+ 
+</mapper>

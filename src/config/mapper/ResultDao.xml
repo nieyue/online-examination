@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">  
+<mapper namespace="com.nieyue.dao.ResultDao">
+<!-- 添加 -->
+<insert id="add" parameterType="Result" keyProperty="resultId" flushCache="true"  >
+   INSERT IGNORE INTO
+   		  result_tb
+   		 (
+   		 score,
+   		 start_date,
+   		 end_date,
+   		 create_date,
+   		 update_date,
+   		 account_id
+   		 )
+   VALUES
+    	 (
+    	 #{score},
+    	 #{startDate},
+    	 #{endDate},
+    	 #{createDate},
+    	 #{updateDate},
+    	 #{accountId}
+    	 )
+</insert>  
+<!-- 更新 -->
+<update id="update" parameterType="Result" >
+    UPDATE 
+    	result_tb
+    <set>
+		<if test="score!=null">
+			score=#{score},
+		</if>
+		<if test="startDate!=null">
+			start_date=#{startDate},
+		</if>
+		<if test="endDate!=null">
+			end_date=#{endDate},
+		</if>
+		<if test="createDate!=null">
+			create_date=#{createDate},
+		</if>
+
+		<if test="updateDate!=null">
+			update_date=#{updateDate},
+		</if>
+		<if test="accountId!=null">
+			account_id=#{accountId},
+		</if>
+	</set>
+    WHERE
+    	 result_id=#{resultId}
+</update> 
+<!-- 删除-->
+<delete id="delete"  parameterType="Integer" >
+    DELETE FROM
+    	 result_tb
+    	 WHERE result_id=#{resultId}
+</delete>  
+<!-- 加载-->
+<select id="load" parameterType="Integer" resultType="Result" >
+SELECT 
+		result_id,
+	 	score,
+	 	start_date,
+   		 end_date,
+	 	create_date,
+	 	update_date,
+	 	account_id
+FROM result_tb
+WHERE result_id=#{resultId}
+</select>
+
+<!-- 列表-->
+<select id="list" resultType="Result">
+    SELECT
+		result_id,
+		score,
+		start_date,
+		end_date,
+		create_date,
+		update_date,
+		account_id
+	FROM result_tb
+	<where>
+		<if test="accountId!=null">
+			AND  account_id=#{accountId}
+		</if>
+		<if test="endDate!=null">
+			AND  end_date<![CDATA[<= ]]>#{endDate}
+		</if>
+		AND ${orderName}
+		<if test="orderWay=='asc'">
+		<![CDATA[>=]]>
+		</if>
+		<if test="orderWay=='desc'">
+		  <![CDATA[<= ]]>
+		</if>
+		(SELECT ${orderName} FROM result_tb
+			<where>
+				<if test="accountId!=null">
+					AND  account_id=#{accountId}
+				</if>
+				<if test="endDate!=null">
+					AND  end_date<![CDATA[<= ]]>#{endDate}
+				</if>
+			</where>
+			ORDER BY
+				${orderName}  ${orderWay}
+			LIMIT #{pageNum}, 1
+			)
+	</where>
+	ORDER BY
+		${orderName}  ${orderWay}
+	LIMIT
+		#{pageSize}
+</select> 
+
+<!-- 数目 -->
+<select id="count"  resultType="int">
+	SELECT
+	 	count(result_id)
+	FROM result_tb
+	<where>
+		<if test="accountId!=null">
+			AND  account_id=#{accountId}
+		</if>
+		<if test="endDate!=null">
+			AND  end_date<![CDATA[<= ]]>#{endDate}
+		</if>
+	</where>
+</select>   
+   
+ 
+</mapper>

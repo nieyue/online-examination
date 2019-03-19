@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">  
+<mapper namespace="com.nieyue.dao.ResultChoiceDao">
+<!-- 添加 -->
+<insert id="add" parameterType="ResultChoice" keyProperty="resultChoiceId" flushCache="true"  >
+   INSERT IGNORE INTO
+   		  result_choice_tb
+   		 (
+   		 score,
+   		 question,
+   		 a,
+   		 b,
+   		 c,
+   		 d,
+   		 correct,
+   		 target,
+   		 create_date,
+   		 update_date,
+   		 result_reading_id,
+   		 result_id
+   		 )
+   VALUES
+    	 (
+    	 #{score},
+    	 #{question},
+    	 #{a},
+    	 #{b},
+    	 #{c},
+    	 #{d},
+    	 #{correct},
+    	 #{target},
+    	 #{createDate},
+    	 #{updateDate},
+    	 #{resultReadingId},
+    	 #{resultId}
+    	 )
+</insert>  
+<!-- 更新 -->
+<update id="update" parameterType="ResultChoice" >
+    UPDATE 
+    	result_choice_tb
+	<set>
+		<if test="score!=null">
+			score=#{score},
+		</if>
+		<if test="question!=null">
+			question=#{question},
+		</if>
+		<if test="a!=null">
+			a=#{a},
+		</if>
+		<if test="b!=null">
+			b=#{b},
+		</if>
+		<if test="c!=null">
+			c=#{c},
+		</if>
+		<if test="d!=null">
+			d=#{d},
+		</if>
+		<if test="correct!=null">
+			correct=#{correct},
+		</if>
+		<if test="target!=null">
+			target=#{target},
+		</if>
+		<if test="createDate!=null">
+			create_date=#{createDate},
+		</if>
+		<if test="updateDate!=null">
+			update_date=#{updateDate},
+		</if>
+		<if test="resultReadingId!=null">
+			result_reading_id=#{resultReadingId},
+		</if>
+		<if test="resultId!=null">
+			result_id=#{resultId},
+		</if>
+	</set>
+    WHERE
+    	 result_choice_id=#{resultChoiceId}
+</update> 
+<!-- 删除-->
+<delete id="delete"  parameterType="Integer" >
+    DELETE FROM
+    	 result_choice_tb
+    	 WHERE result_choice_id=#{resultChoiceId}
+</delete>  
+<!-- 加载-->
+<select id="load" parameterType="Integer" resultType="ResultChoice" >
+SELECT 
+		result_choice_id,
+	 	score,
+   		 question,
+   		 a,
+   		 b,
+   		 c,
+   		 d,
+   		 correct,
+   		 target,
+   		 create_date,
+   		 update_date,
+   		 result_reading_id,
+   		 result_id
+FROM result_choice_tb
+WHERE result_choice_id=#{resultChoiceId}
+</select>
+
+<!-- 列表-->
+<select id="list" resultType="ResultChoice">
+        SELECT
+		result_choice_id,
+		score,
+		question,
+		a,
+		b,
+		c,
+		d,
+		correct,
+		target,
+		create_date,
+		update_date,
+		result_reading_id,
+		result_id
+	FROM result_choice_tb
+	<where>
+		<if test="resultReadingId!=null">
+			AND  result_reading_id=#{resultReadingId}
+		</if>
+		<if test="resultId!=null">
+			AND  result_id=#{resultId}
+		</if>
+		<if test="correct!=null">
+			AND  correct=#{correct}
+		</if>
+		AND ${orderName}
+		<if test="orderWay=='asc'">
+		<![CDATA[>=]]>
+		</if>
+		<if test="orderWay=='desc'">
+		  <![CDATA[<= ]]>
+		</if>
+		(SELECT ${orderName} FROM result_choice_tb
+			<where>
+				<if test="resultReadingId!=null">
+					AND  result_reading_id=#{resultReadingId}
+				</if>
+				<if test="resultId!=null">
+					AND  result_id=#{resultId}
+				</if>
+				<if test="correct!=null">
+					AND  correct=#{correct}
+				</if>
+			</where>
+			ORDER BY
+				${orderName}  ${orderWay}
+			LIMIT #{pageNum}, 1
+			)
+	</where>
+		ORDER BY
+			${orderName}  ${orderWay}
+		LIMIT
+			#{pageSize}
+</select> 
+
+<!-- 数目 -->
+<select id="count"  resultType="int">
+	SELECT
+	 	count(result_choice_id)
+	FROM result_choice_tb
+	<where>
+		<if test="resultReadingId!=null">
+			AND  result_reading_id=#{resultReadingId}
+		</if>
+		<if test="resultId!=null">
+			AND  result_id=#{resultId}
+		</if>
+		<if test="correct!=null">
+			AND  correct=#{correct}
+		</if>
+	</where>
+</select>   
+   
+ 
+</mapper>

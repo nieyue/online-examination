@@ -1,0 +1,93 @@
+<div style="background-color:#fff;width:100%;height:500px;padding:50px;">
+	<div id="noStart"style="text-align:center;">
+		<div class="text-primary " style="font-weight:bold;font-size:3rem;padding:50px 0;">
+			大学英语在线考试
+		</div>
+		<div>
+			<button class="btn-danger btn-lg" style="margin:200px 0;" id="start">开始考试</button>
+		</div>
+	</div>
+	<div id="isStart" style="display: none;">
+		<div style="text-align:center;">
+			<span>考试时间：60分钟</span>
+			<span>剩余时间：<span id="edate"></span></span>
+		</div>
+		<div>
+			<div>一.选择题（10题，每题5分）</div>
+			<div id="resultChoiceList">
+
+			</div>
+			<div>二.阅读理解（2个阅读理解，每题5个问题，每题5分）</div>
+			<div id="resultReadingList">
+
+			</div>
+		</div>
+		<div>
+
+		</div>
+	</div>
+</div>
+
+<script>
+    //倒计时初始化
+    function clock(element,endDate){
+        var today=new Date(),//当前时间
+            h=today.getHours(),
+            m=today.getMinutes(),
+            s=today.getSeconds();
+        var stopTime=new Date(endDate||"Feb 9 2019 00:00:00"),//结束时间
+            stopH=stopTime.getHours(),
+            stopM=stopTime.getMinutes(),
+            stopS=stopTime.getSeconds();
+        var shenyu=stopTime.getTime()-today.getTime(),//倒计时毫秒数
+            shengyuD=parseInt(shenyu/(60*60*24*1000)),//转换为天
+            D=parseInt(shenyu)-parseInt(shengyuD*60*60*24*1000),//除去天的毫秒数
+            shengyuH=parseInt(D/(60*60*1000)),//除去天的毫秒数转换成小时
+            H=D-shengyuH*60*60*1000,//除去天、小时的毫秒数
+            shengyuM=parseInt(H/(60*1000)),//除去天的毫秒数转换成分钟
+            M=H-shengyuM*60*1000;//除去天、小时、分的毫秒数
+        S=parseInt((shenyu-shengyuD*60*60*24*1000-shengyuH*60*60*1000-shengyuM*60*1000)/1000)//除去天、小时、分的毫秒数转化为秒
+		// document.getElementById("div").innerHTML=(shengyuD+"天"+shengyuH+"小时"+shengyuM+"分"+S+"秒"+"<br>");
+		document.getElementById(element).innerHTML=shengyuH+"小时"+shengyuM+"分"+S+"秒"+"<br>";
+    }
+    //初始化列表
+    business.resultIsStart=function(){
+            business.params.endDate=myUtils.timeStampToDate();
+        business.getList({
+            countUrl:'/result/count',
+            listUrl:'/result/list',
+            data:'resultList',
+            success:function(){
+				if(business.resultList.length>0){
+				    console.log("sdf")
+					//存在
+					$("#noStart").hide()
+					$("#isStart").show()
+					//剩余时间
+                    clock("edate",business.resultList[0].endDate)
+					setInterval(function(){
+                        clock("edate",business.resultList[0].endDate)
+					},1000)
+				}
+            }
+        },business.params);
+    }
+    //初始化
+    business.resultIsStart();
+
+    //开始考试
+	$("#start").click(function(){
+        business.addResult={
+            accountId:business.sessionAccount.accountId,
+        };
+        business.add({
+            url:'/result/add',
+            requestObject:'addResult',
+            success:function(){
+                //初始化
+                business.resultIsStart();
+            }
+        });
+    });
+
+</script>
