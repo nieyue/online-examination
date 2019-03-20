@@ -13,7 +13,7 @@ import java.util.List;
  *
  */
 @ApiModel(value="考试成绩",description="考试成绩")
-@Data
+//@Data
 public class Result implements Serializable{
     /**
      *
@@ -66,6 +66,81 @@ public class Result implements Serializable{
     @ApiModelProperty(value="阅读理解成绩列表")
     private List<ResultReading> resultReadingList;
 
+    public static long getSerialVersionUID() {
+        return serialVersionUID;
+    }
+
+    public Integer getResultId() {
+        return resultId;
+    }
+
+    public void setResultId(Integer resultId) {
+        this.resultId = resultId;
+    }
+
+    public Double getScore() {
+        return score;
+    }
+
+    public void setScore(Double score) {
+        this.score = score;
+    }
+
+    public Date getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
+    }
+
+    public Date getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(Date endDate) {
+        this.endDate = endDate;
+    }
+
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
+    }
+
+    public Date getUpdateDate() {
+        return updateDate;
+    }
+
+    public void setUpdateDate(Date updateDate) {
+        this.updateDate = updateDate;
+    }
+
+    public Integer getAccountId() {
+        return accountId;
+    }
+
+    public void setAccountId(Integer accountId) {
+        this.accountId = accountId;
+    }
+
+    public List<ResultChoice> getResultChoiceList() {
+        return resultChoiceList;
+    }
+
+    public void setResultChoiceList(List<ResultChoice> resultChoiceList) {
+        this.resultChoiceList = resultChoiceList;
+    }
+
+    public List<ResultReading> getResultReadingList() {
+        return resultReadingList;
+    }
+
+    public void setResultReadingList(List<ResultReading> resultReadingList) {
+        this.resultReadingList = resultReadingList;
+    }
 }
 
 

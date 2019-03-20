@@ -1,6 +1,7 @@
 package com.nieyue.controller;
 
 import com.nieyue.bean.*;
+import com.nieyue.exception.CommonRollbackException;
 import com.nieyue.exception.NotAnymoreException;
 import com.nieyue.exception.NotIsNotExistException;
 import com.nieyue.service.*;
@@ -10,11 +11,13 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.models.auth.In;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -100,6 +103,48 @@ public class ResultController {
 		return ResultUtil.getSlefSRFailList(null);
 	}
 	/**
+	 * 考试提交
+	 * @return
+	 */
+	@ApiOperation(value = "考试提交", notes = "考试提交")
+	@RequestMapping(value = "/submit", method = {RequestMethod.GET,RequestMethod.POST})
+	public @ResponseBody StateResultList<List<Result>> submit(
+			@RequestParam(value="accountId",required=false)Integer accountId,
+			@RequestParam(value="resultId",required=false)Integer resultId,
+			@RequestParam(value="selectResultChoice",required=false) String selectResultChoice
+			,HttpSession session)  {
+		Result result = resultService.load(resultId);
+		if(result==null){
+			throw new CommonRollbackException("考试不存在");
+		}
+		if(result.getScore()>0){
+			throw new CommonRollbackException("已经考过");
+		}
+		Double total=0.0;
+		JSONArray jsonarray = JSONArray.fromObject(selectResultChoice);
+		for (int i = 0; i < jsonarray.size(); i++) {
+			JSONObject json = jsonarray.getJSONObject(i);
+			Integer resultChoiceId = json.getInt("resultChoiceId");
+			Integer target = json.getInt("target");
+			ResultChoice resultChoice = resultChoiceService.load(resultChoiceId);
+			if(resultChoice.getCorrect().equals(target)){
+				total+=resultChoice.getScore();
+			}
+			resultChoice.setTarget(target);
+			resultChoiceService.update(resultChoice);
+		}
+			result.setScore(total);
+		result.setEndDate(new Date());
+		result.setUpdateDate(new Date());
+		boolean um = resultService.update(result);
+		if(um){
+			List<Result> list = new ArrayList<>();
+			list.add(result);
+			return ResultUtil.getSlefSRSuccessList(list);
+		}
+		return ResultUtil.getSlefSRFailList(null);
+	}
+	/**
 	 * 考试
 	 * @return 
 	 */
@@ -132,6 +177,7 @@ public class ResultController {
 			resultChoice.setB(choice.getB());
 			resultChoice.setC(choice.getC());
 			resultChoice.setD(choice.getD());
+			resultChoice.setScore(choice.getScore());
 			resultChoice.setCorrect(choice.getCorrect());
 			resultChoice.setQuestion(choice.getQuestion());
 			resultChoice.setResultId(result.getResultId());
@@ -164,6 +210,7 @@ public class ResultController {
 				resultChoice.setC(c.getC());
 				resultChoice.setD(c.getD());
 				resultChoice.setCorrect(c.getCorrect());
+				resultChoice.setScore(c.getScore());
 				resultChoice.setQuestion(c.getQuestion());
 				resultChoice.setResultId(result.getResultId());
 				resultChoice.setResultReadingId(resultReading.getResultReadingId());//是阅读理解
@@ -258,5 +305,40 @@ public class ResultController {
 				throw new NotIsNotExistException("考试成绩");//不存在
 			}
 	}
-	
+	/**
+	 * 导出Excel
+	 * @return
+	 * @throws IOException
+	 * @throws IllegalStateException
+	 */
+	@RequestMapping(value = "/exportExcel", method = {RequestMethod.GET,RequestMethod.POST})
+	public StateResultList<List<List<List<Object>>>> exportExcel(
+			@RequestParam("accountId") Integer accountId,
+			@RequestParam("resultId") Integer resultId,
+			HttpSession	 session
+	) throws IllegalStateException, IOException {
+		/*String name="";
+		name="D:/nieyue"+"/uploaderPath/img/"+ SnowflakeIdWorker.getId().toString()+multipartFile.getOriginalFilename();
+		File file = new File(name);
+		multipartFile.transferTo(file);
+		List<List<List<Object>>> lll = MyExcel.importData(file);
+		for (int i = 0; i < lll.size(); i++) {
+			List<List<Object>> ll = lll.get(i);
+			//数据从1行开始，0是列名
+			for (int j = 1; j < lll.size(); j++) {
+				List<Object> l = ll.get(j);
+				Account account = new Account();
+				for (int z = 0; z < l.size(); z++) {
+					//account.set
+				}
+
+			}
+		}*/
+		//MyExcel.exportData("考试"+resultId,list,"D://home","/",null);
+		Result result = resultService.load(resultId);
+		ArrayList<String> listname = new ArrayList<>();
+		listname.add("考试成绩"+result.getResultId());
+
+		return ResultUtil.getSlefSRSuccessList(null);
+	}
 }

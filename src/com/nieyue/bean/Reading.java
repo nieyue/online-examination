@@ -12,7 +12,7 @@ import java.util.Date;
  *
  */
 @ApiModel(value="阅读理解",description="阅读理解")
-@Data
+//@Data
 public class Reading implements Serializable{
     /**
      *
@@ -39,6 +39,41 @@ public class Reading implements Serializable{
     @ApiModelProperty(value="更新时间")
     private Date updateDate;
 
+    public static long getSerialVersionUID() {
+        return serialVersionUID;
+    }
+
+    public Integer getReadingId() {
+        return readingId;
+    }
+
+    public void setReadingId(Integer readingId) {
+        this.readingId = readingId;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
+    }
+
+    public Date getUpdateDate() {
+        return updateDate;
+    }
+
+    public void setUpdateDate(Date updateDate) {
+        this.updateDate = updateDate;
+    }
 }
 
 

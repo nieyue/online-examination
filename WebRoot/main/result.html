@@ -1,0 +1,104 @@
+<div class="right-body">
+<!-- 考试成绩列表选择 -->
+<div style="margin:10px;">
+<label  class="text-danger nieyueText" style="font-size:30px;color:#ccc;">考试成绩列表</label>
+</div>
+<div style="margin:10px;">
+<button class="btn btn-primary" onclick="business.self.addClick()">添加考试成绩</button>
+</div>
+<!-- 考试成绩列表选择end -->
+<!-- 考试成绩列表 -->
+		<div style="width:100%" class="tableWrap">
+			<table class="table table-bordered" style="width:100%">
+				<!--表格头-->
+    			<thead>
+					<tr>
+					  <th>序号</th>
+					  <th>考试成绩id</th>
+					  <th>分数</th>
+					  <th>评价</th>
+					  <th>开始时间</th>
+					  <th>结束时间</th>
+					  <th>创建时间</th>
+					  <th>更新时间</th>
+					</tr>
+    			</thead>
+    			<!--表格主体-->
+    			<tbody id="tableTbody">
+				</tbody>
+			</table>
+		</div>
+<!-- 考试成绩列表end -->
+	<!-- 页面列表end -->
+
+
+<!-- 分页 -->
+<div class="page_div">
+<!--分页条信息 -->
+	<div class="page_label" id="di">
+		<nav aria-label="Page navigation">
+	    	<ul class="pagination">
+		    </ul>
+		</nav>	
+	</div>
+<!--分页文字信息  -->
+	<div class="page_font"></div>
+</div> 
+<!--分页 end -->
+</div>
+<script>
+
+	//初始化列表
+	business.self.getList=function(callback){
+
+	business.getList({
+       countUrl:'/result/count',
+       listUrl:'/result/list',
+       data:'resultList',
+       success:function(){
+       var tableTbody="";
+       for(var i=0;i<business.resultList.length;i++){
+           var scorevalue=business.resultList[i].score;
+           var comment=scorevalue>=90?'优秀':scorevalue>=80?'良':scorevalue>=60?'合格':'不合格'
+		   var classcomment=scorevalue>=60?'btn btn-success':'btn btn-danger'
+			tableTbody+="<tr>"+
+						  "<td>"+
+						      "<span>"+(i+(business.params.currentPage-1)*business.params.pageSize+business.params.startNum)+"</span>"+
+						  "</td>"+
+						  "<td>"+
+						      "<span>"+business.resultList[i].resultId+"</span>"+
+						  "</td>"+
+						  "<td>"+
+						      "<span>"+business.resultList[i].score+"</span>"+
+						  "</td>"+
+						  "<td>"+
+						      "<span class='"+classcomment+"' onclick='business.addResult()' >"+comment+"</span>"+
+						  "</td>"+
+						  "<td>"+
+						      "<span>"+business.resultList[i].startDate+"</span>"+
+						  "</td>"+
+						  "<td>"+
+						      "<span>"+business.resultList[i].endDate+"</span>"+
+						  "</td>"+
+						  "<td>"+
+						      "<span>"+business.resultList[i].createDate+"</span>"+
+						  "</td>"+
+						  "<td>"+
+						      "<span>"+business.resultList[i].updateDate+"</span>"+
+						  "</td>"+
+						"</tr>";
+		}
+		//表格数据
+		$("#tableTbody").html(tableTbody);
+		//回调
+		callback();
+		     }
+     },business.params);
+	}
+	//初始化
+	business.initPage(business.self.getList);
+	//重修
+	business.addResult=function(){
+	    console.log(123)
+	}
+</script>

@@ -12,7 +12,7 @@ import java.util.Date;
  *
  */
 @ApiModel(value="角色",description="角色")
-@Data
+//@Data
 public class Role implements Serializable{
     /**
      *
@@ -40,6 +40,41 @@ public class Role implements Serializable{
     @ApiModelProperty(value="角色更新时间")
     private Date updateDate;
 
+    public static long getSerialVersionUID() {
+        return serialVersionUID;
+    }
+
+    public Integer getRoleId() {
+        return roleId;
+    }
+
+    public void setRoleId(Integer roleId) {
+        this.roleId = roleId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDuty() {
+        return duty;
+    }
+
+    public void setDuty(String duty) {
+        this.duty = duty;
+    }
+
+    public Date getUpdateDate() {
+        return updateDate;
+    }
+
+    public void setUpdateDate(Date updateDate) {
+        this.updateDate = updateDate;
+    }
 }
 
 

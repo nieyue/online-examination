@@ -60,6 +60,13 @@
             listUrl:'/result/list',
             data:'resultList',
             success:function(){
+                if(business.resultList.length<0){
+                    //不存在存在
+                    $("#noStart").show()
+                    $("#isStart").hide()
+					console.log(123)
+					return;
+				}
 				if(business.resultList.length>0){
 				    console.log("sdf")
 					//存在
@@ -137,11 +144,11 @@
 	//选择答案
 	business.self.selectResultChoice=function(abcd,resultChoice){
 		var abcdarray=["a","b","c","d"];
-		for (let i = 0; i <abcdarray.length; i++) {
+		for (var i = 0; i <abcdarray.length; i++) {
 			if(abcdarray[i]==abcd){
 				//当前选项已选过
 				var isHaveResultChoice=false;
-				for (let j = 0; j < selectResultChoice.length; j++) {
+				for (var j = 0; j < selectResultChoice.length; j++) {
 					if(selectResultChoice[j].resultChoiceId==resultChoice.resultChoiceId){
 						//已经存在，便更新
 						isHaveResultChoice=true;
@@ -165,21 +172,24 @@
 	}
 	//提交试卷
 	$("#submit").click(function(){
-		console.log($(".btn").size()/4)
+		console.log(business.resultList[0])
 		//没全部提交完成
 		if(selectResultChoice.length<$(".btn").size()/4){
 			myUtils.myLoadingToast("还有题没做哦！")
 			return;
 		}
-		business.addResult={
+		business.submitResult={
 			accountId:business.sessionAccount.accountId,
+			resultId:business.resultList[0].resultId,
+            selectResultChoice:JSON.stringify(selectResultChoice),
 		};
 		business.add({
-			url:'/result/start',
-			requestObject:'addResult',
+			url:'/result/submit',
+			requestObject:'submitResult',
 			success:function(){
 				//初始化
-				business.resultIsStart();
+				//business.resultIsStart();
+                $(".content_main").load(business.domainUrl+"/main/result.html");
 			}
 		});
 	});
