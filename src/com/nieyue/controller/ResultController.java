@@ -5,6 +5,8 @@ import com.nieyue.exception.CommonRollbackException;
 import com.nieyue.exception.NotAnymoreException;
 import com.nieyue.exception.NotIsNotExistException;
 import com.nieyue.service.*;
+import com.nieyue.util.DateUtil;
+import com.nieyue.util.MyExcel;
 import com.nieyue.util.ResultUtil;
 import com.nieyue.util.StateResultList;
 import io.swagger.annotations.Api;
@@ -16,6 +18,7 @@ import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -134,8 +137,9 @@ public class ResultController {
 			resultChoiceService.update(resultChoice);
 		}
 			result.setScore(total);
-		result.setEndDate(new Date());
-		result.setUpdateDate(new Date());
+		Date newdate = new Date();
+		result.setEndDate(newdate);
+		result.setUpdateDate(newdate);
 		boolean um = resultService.update(result);
 		if(um){
 			List<Result> list = new ArrayList<>();
@@ -153,13 +157,14 @@ public class ResultController {
 	public @ResponseBody StateResultList<List<Result>> start(@ModelAttribute Result result, HttpSession session) {
 		int count = resultService.count(result.getAccountId(), new Date());
 		if(count>0){
-		//如果小于结束时间还存在有，便是在考试，不能新增
-			return ResultUtil.getSlefSRFailList(null);
+			//如果小于结束时间还存在有，便是在考试，不能新增
+			throw new CommonRollbackException("已经有考试在进行");
 		}
 		result.setScore(0.0);
-		result.setStartDate(new Date());
+		Date newdate = new Date();
+		result.setStartDate(newdate);
 		//60分钟
-		result.setEndDate(new Date(new Date().getTime()+60*60*1000));
+		result.setEndDate(new Date(newdate.getTime()+60*60*1000));
 		boolean am = resultService.add(result);
 		//获取选择题，10个
 		int choiceNumber = choiceService.count(0, null);
@@ -218,6 +223,41 @@ public class ResultController {
 			}
 		}
 		if(am){
+			List<Result> list = new ArrayList<>();
+			list.add(result);
+			return ResultUtil.getSlefSRSuccessList(list);
+		}
+		return ResultUtil.getSlefSRFailList(null);
+	}
+	/**
+	 * 考试重修
+	 * @return
+	 */
+	@ApiOperation(value = "考试重修", notes = "考试重修")
+	@RequestMapping(value = "/reset", method = {RequestMethod.GET,RequestMethod.POST})
+	public @ResponseBody StateResultList<List<Result>> reset(
+			@RequestParam(value="accountId",required=false)Integer accountId,
+			@RequestParam(value="resultId",required=false)Integer resultId
+			,HttpSession session)  {
+		int count = resultService.count(accountId, new Date());
+		if(count>0){
+			//如果小于结束时间还存在有，便是在考试，不能新增
+			throw new CommonRollbackException("已经有考试在进行");
+		}
+
+		Result result = resultService.load(resultId);
+
+		if(result==null){
+			throw new CommonRollbackException("考试不存在");
+		}
+		result.setScore(0.0);
+		Date newdate = new Date();
+		result.setStartDate(newdate);
+		//60分钟
+		result.setEndDate(new Date(newdate.getTime()+60*60*1000));
+		result.setUpdateDate(newdate);
+		boolean um = resultService.update(result);
+		if(um){
 			List<Result> list = new ArrayList<>();
 			list.add(result);
 			return ResultUtil.getSlefSRSuccessList(list);
@@ -312,9 +352,10 @@ public class ResultController {
 	 * @throws IllegalStateException
 	 */
 	@RequestMapping(value = "/exportExcel", method = {RequestMethod.GET,RequestMethod.POST})
-	public StateResultList<List<List<List<Object>>>> exportExcel(
+	public String exportExcel(
 			@RequestParam("accountId") Integer accountId,
 			@RequestParam("resultId") Integer resultId,
+			HttpServletRequest request,
 			HttpSession	 session
 	) throws IllegalStateException, IOException {
 		/*String name="";
@@ -335,10 +376,128 @@ public class ResultController {
 			}
 		}*/
 		//MyExcel.exportData("考试"+resultId,list,"D://home","/",null);
+		List<Result> list = new ArrayList<>();
 		Result result = resultService.load(resultId);
+			List<ResultChoice> resultChoiceList = resultChoiceService.list(0, result.getResultId(), 1, Integer.MAX_VALUE, "result_choice_id", "asc");
+			result.setResultChoiceList(resultChoiceList);
+			List<ResultReading> resultReadingList = resultReadingService.list(result.getResultId(), 1, Integer.MAX_VALUE, "result_reading_id", "asc");
+			for (int j = 0; j < resultReadingList.size(); j++) {
+				ResultReading resultReading = resultReadingList.get(j);
+				List<ResultChoice> rcl= resultChoiceService.list(resultReading.getResultReadingId(), result.getResultId(), 1, Integer.MAX_VALUE, "result_choice_id", "asc");
+				resultReading.setResultChoiceList(rcl);
+			}
+			result.setResultReadingList(resultReadingList);
+			list.add(result);
+
 		ArrayList<String> listname = new ArrayList<>();
 		listname.add("考试成绩"+result.getResultId());
+		List<List<List<String>>> list2 = new ArrayList<>();
+		List<List<String>> list0 = new ArrayList<>();
+		ArrayList<String> list00 = new ArrayList<>();
+		list00.add("考试成绩："+result.getScore());
+		list00.add("考试时间：60分钟");
+		list00.add("开始时间："+ DateUtil.getDateString(result.getStartDate()));
+		list00.add("结束时间："+DateUtil.getDateString(result.getEndDate()));
+		list0.add(list00);
 
-		return ResultUtil.getSlefSRSuccessList(null);
+		list0.add(new ArrayList<>());//空格
+
+		//选择题
+		ArrayList<String> list01 = new ArrayList<>();
+		list01.add("一.选择题（10题，每题5分）");
+		list0.add(list01);
+		for (int i = 0; i < resultChoiceList.size(); i++) {
+			ResultChoice resultChoice = resultChoiceList.get(i);
+			//一排问题
+			ArrayList<String> list000 = new ArrayList<>();
+			list000.add((i+1)+","+resultChoice.getQuestion());
+			list0.add(list000);
+			//一排答案
+			ArrayList<String> list001 = new ArrayList<>();
+			list001.add("a,"+resultChoice.getA());
+			list001.add("b,"+resultChoice.getB());
+			list001.add("c,"+resultChoice.getC());
+			list001.add("d,"+resultChoice.getD());
+			list0.add(list001);
+			//选择的答案和正确答案
+			ArrayList<String> list002 = new ArrayList<>();
+			String target="a";
+				if(resultChoice.getTarget().equals(1)){
+					target="a";
+				}else if(resultChoice.getTarget().equals(2)){
+					target="b";
+				}else if(resultChoice.getTarget().equals(3)){
+					target="c";
+				}else if(resultChoice.getTarget().equals(4)){
+					target="d";
+				}
+				String correct="a";
+				if(resultChoice.getCorrect().equals(1)){
+					correct="a";
+				}else if(resultChoice.getCorrect().equals(2)){
+					correct="b";
+				}else if(resultChoice.getCorrect().equals(3)){
+					correct="c";
+				}else if(resultChoice.getCorrect().equals(4)){
+					correct="d";
+				}
+
+			list002.add("选择的答案："+target);
+			list002.add("正确的答案："+correct);
+			list0.add(list002);
+		}
+		list0.add(new ArrayList<>());//空格
+		//阅读理解
+		ArrayList<String> list02 = new ArrayList<>();
+		list02.add("二.阅读理解（2个阅读理解，每题5个问题，每题5分）");
+		list0.add(list02);
+		for (int i = 0; i < resultReadingList.size(); i++) {
+			ResultReading resultReading = resultReadingList.get(i);
+			//内容
+			ArrayList<String> list000 = new ArrayList<>();
+			list000.add(resultReading.getContent());
+			list0.add(list000);
+			//问题
+			for (int j = 0; j < resultReading.getResultChoiceList().size(); j++) {
+				ResultChoice rc = resultReading.getResultChoiceList().get(j);
+				ArrayList<String> list0000 = new ArrayList<>();
+				list0000.add("a,"+rc.getA());
+				list0000.add("b,"+rc.getB());
+				list0000.add("c,"+rc.getC());
+				list0000.add("d,"+rc.getD());
+				list0.add(list0000);
+				//选择的答案和正确答案
+				ArrayList<String> list0001 = new ArrayList<>();
+				String target="a";
+				if(rc.getTarget().equals(1)){
+					target="a";
+				}else if(rc.getTarget().equals(2)){
+					target="b";
+				}else if(rc.getTarget().equals(3)){
+					target="c";
+				}else if(rc.getTarget().equals(4)){
+					target="d";
+				}
+				String correct="a";
+				if(rc.getCorrect().equals(1)){
+					correct="a";
+				}else if(rc.getCorrect().equals(2)){
+					correct="b";
+				}else if(rc.getCorrect().equals(3)){
+					correct="c";
+				}else if(rc.getCorrect().equals(4)){
+					correct="d";
+				}
+
+				list0001.add("选择的答案："+target);
+				list0001.add("正确的答案："+correct);
+				list0.add(list0001);
+			}
+
+		}
+		list2.add(list0);
+
+		MyExcel.exportData(listname,list2,request.getServletContext().getRealPath("/"),"/","resultId"+resultId+".xls");
+		return "/resultId"+resultId+".xls";
 	}
 }

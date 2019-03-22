@@ -3,9 +3,6 @@
 <div style="margin:10px;">
 <label  class="text-danger nieyueText" style="font-size:30px;color:#ccc;">考试成绩列表</label>
 </div>
-<div style="margin:10px;">
-<button class="btn btn-primary" onclick="business.self.addClick()">添加考试成绩</button>
-</div>
 <!-- 考试成绩列表选择end -->
 <!-- 考试成绩列表 -->
 		<div style="width:100%" class="tableWrap">
@@ -21,6 +18,7 @@
 					  <th>结束时间</th>
 					  <th>创建时间</th>
 					  <th>更新时间</th>
+					  <th>操作</th>
 					</tr>
     			</thead>
     			<!--表格主体-->
@@ -50,7 +48,7 @@
 
 	//初始化列表
 	business.self.getList=function(callback){
-
+        business.params.accountId=business.sessionAccount.accountId
 	business.getList({
        countUrl:'/result/count',
        listUrl:'/result/list',
@@ -72,7 +70,7 @@
 						      "<span>"+business.resultList[i].score+"</span>"+
 						  "</td>"+
 						  "<td>"+
-						      "<span class='"+classcomment+"' onclick='business.addResult()' >"+comment+"</span>"+
+						      "<span class='"+classcomment+"' onclick='business.resetResult("+JSON.stringify(business.resultList[i])+")' >"+comment+"</span>"+
 						  "</td>"+
 						  "<td>"+
 						      "<span>"+business.resultList[i].startDate+"</span>"+
@@ -86,6 +84,9 @@
 						  "<td>"+
 						      "<span>"+business.resultList[i].updateDate+"</span>"+
 						  "</td>"+
+						  "<td>"+
+						      "<span class='btn btn-danger' onclick='business.exportExcel("+JSON.stringify(business.resultList[i])+")' >>下载附件</span>"+
+						  "</td>"+
 						"</tr>";
 		}
 		//表格数据
@@ -98,7 +99,26 @@
 	//初始化
 	business.initPage(business.self.getList);
 	//重修
-	business.addResult=function(){
-	    console.log(123)
+	business.resetResult=function(result){
+	    if(result.score<60){
+	        //getQrCode
+			var p=location.protocol+"//"+location.host+"/resetResult.html?result="+result.score+"&accountId="+business.sessionAccount.accountId;
+            console.log(p)
+            var html='<div>' +
+                '<div>扫码重修</div>' +
+                '<div style="text-align:center;"><img src="'+("/tool/getQrCode?url="+encodeURIComponent(p))+'" style="width:20%;"/></div>' +
+                '</div>'
+            myUtils.myTemplate(html)
+        }
+	}
+	//下载附件
+	business.exportExcel=function(result){
+        $.ajax({
+            url:"/result/exportExcel?resultId="+result.resultId+"&accountId="+business.sessionAccount.accountId,
+            type:"get",
+            success:function(data){
+            location.href=data;
+            }
+        });
 	}
 </script>

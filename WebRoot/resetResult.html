@@ -1,0 +1,32 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<meta content="width=device-width,initial-scale=1.0,maximum-scale=1,user-scalable=no" name="viewport" />
+<title>重修界面</title>
+
+<link href="resources/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div style="text-align: center;vertical-align: middle;">
+	<button class="btn-success" style="margin-top:40%;" id="reset">点击重修</button>
+</div>
+<script type="text/javascript" src="resources/js/jquery1.9.js"></script>
+<script type="text/javascript" src="resources/js/base.js"></script>
+<script>
+$("#reset").click(function(){
+    $.ajax({
+        url:"/result/reset?resultId="+myUtils.GetQueryString("resultId")+"&accountId="+myUtils.GetQueryString("accountId"),
+        type:"get",
+        success:function(data){
+            console.log(data);
+            if(data.code==200){
+                myUtils.fullTemplate("重修成功，请立即去考试")
+            }else{
+                myUtils.fullTemplate(data.msg)
+            }
+        }
+    });
+})
+</script>
+</body>
+</html>
