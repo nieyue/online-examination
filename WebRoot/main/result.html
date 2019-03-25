@@ -49,6 +49,7 @@
 	//初始化列表
 	business.self.getList=function(callback){
         business.params.accountId=business.sessionAccount.accountId
+        business.params.status=2
 	business.getList({
        countUrl:'/result/count',
        listUrl:'/result/list',

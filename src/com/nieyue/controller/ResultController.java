@@ -5,10 +5,7 @@ import com.nieyue.exception.CommonRollbackException;
 import com.nieyue.exception.NotAnymoreException;
 import com.nieyue.exception.NotIsNotExistException;
 import com.nieyue.service.*;
-import com.nieyue.util.DateUtil;
-import com.nieyue.util.MyExcel;
-import com.nieyue.util.ResultUtil;
-import com.nieyue.util.StateResultList;
+import com.nieyue.util.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -56,6 +53,7 @@ public class ResultController {
 	@ApiOperation(value = "考试成绩列表", notes = "考试成绩分页浏览")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name="accountId",value="账户id外键",dataType="int", paramType = "query"),
+			@ApiImplicitParam(name="status",value="状态，默认1考试中，2完成",dataType="int", paramType = "query"),
 			@ApiImplicitParam(name="endDate",value="小于结束时间",dataType="datetime", paramType = "query"),
 			@ApiImplicitParam(name="pageNum",value="页头数位",dataType="int", paramType = "query",defaultValue="1"),
 			@ApiImplicitParam(name="pageSize",value="每页数目",dataType="int", paramType = "query",defaultValue="10"),
@@ -65,13 +63,14 @@ public class ResultController {
 	@RequestMapping(value = "/list", method = {RequestMethod.GET,RequestMethod.POST})
 	public @ResponseBody StateResultList<List<Result>> list(
 			@RequestParam(value="accountId",required=false)Integer accountId,
+			@RequestParam(value="status",required=false)Integer status,
 			@RequestParam(value="endDate",required=false) Date endDate,
 			@RequestParam(value="pageNum",defaultValue="1",required=false)int pageNum,
 			@RequestParam(value="pageSize",defaultValue="10",required=false) int pageSize,
 			@RequestParam(value="orderName",required=false,defaultValue="update_date") String orderName,
 			@RequestParam(value="orderWay",required=false,defaultValue="desc") String orderWay)  {
 		List<Result> list = new ArrayList<Result>();
-		list= resultService.list(accountId,endDate,pageNum, pageSize, orderName, orderWay);
+		list= resultService.list(accountId,status,endDate,pageNum, pageSize, orderName, orderWay);
 		if(list.size()>0){
 			for (int i = 0; i < list.size(); i++) {
 				Result result = list.get(i);
@@ -120,7 +119,7 @@ public class ResultController {
 		if(result==null){
 			throw new CommonRollbackException("考试不存在");
 		}
-		if(result.getScore()>0){
+		if(result.getStatus()==2){
 			throw new CommonRollbackException("已经考过");
 		}
 		Double total=0.0;
@@ -140,6 +139,7 @@ public class ResultController {
 		Date newdate = new Date();
 		result.setEndDate(newdate);
 		result.setUpdateDate(newdate);
+		result.setStatus(2);
 		boolean um = resultService.update(result);
 		if(um){
 			List<Result> list = new ArrayList<>();
@@ -155,25 +155,28 @@ public class ResultController {
 	@ApiOperation(value = "考试", notes = "考试")
 	@RequestMapping(value = "/start", method = {RequestMethod.GET,RequestMethod.POST})
 	public @ResponseBody StateResultList<List<Result>> start(@ModelAttribute Result result, HttpSession session) {
-		int count = resultService.count(result.getAccountId(), new Date());
+		int count = resultService.count(result.getAccountId(),1, new Date());
 		if(count>0){
-			//如果小于结束时间还存在有，便是在考试，不能新增
 			throw new CommonRollbackException("已经有考试在进行");
 		}
 		result.setScore(0.0);
 		Date newdate = new Date();
 		result.setStartDate(newdate);
+		result.setStatus(1);
 		//60分钟
 		result.setEndDate(new Date(newdate.getTime()+60*60*1000));
 		boolean am = resultService.add(result);
 		//获取选择题，10个
 		int choiceNumber = choiceService.count(0, null);
-		int startChoiceNumber=1;
-		int mastChoiceNumber=10;
-		if(choiceNumber>mastChoiceNumber){
-			startChoiceNumber=new Random().nextInt((choiceNumber-mastChoiceNumber));
+		List<Integer> list=new ArrayList<>();
+		for (int i = 0; i < choiceNumber; i++) {
+			list.add(i+1);
 		}
-		List<Choice> choiceList = choiceService.list(0, null, startChoiceNumber, mastChoiceNumber, "choice_id", "asc");
+		List<Integer> array = new NumberUtil<Integer>().getRandomArrayElements(list, 10);
+		List<Choice> choiceList=new ArrayList<>();
+		for (int i = 0; i < array.size(); i++) {
+			choiceList.addAll(choiceService.list(0, null, array.get(i),1, "choice_id", "asc"));
+		}
 		//添加选择题
 		for (int i = 0; i <choiceList.size() ; i++) {
 			Choice choice = choiceList.get(i);
@@ -192,13 +195,16 @@ public class ResultController {
 
 		//获取2个阅读理解，每题5个
 		int readingNumber = readingService.count();
-		int startReadingNumber=1;
-		int mastReadingNumber=2;
-		if(readingNumber>mastReadingNumber){
-			startReadingNumber=new Random().nextInt((readingNumber-mastReadingNumber));
+		List<Integer> list2=new ArrayList<>();
+		for (int i = 0; i < readingNumber; i++) {
+			list2.add(i+1);
+		}
+		List<Integer> array2 = new NumberUtil<Integer>().getRandomArrayElements(list2, 2);
+		List<Reading> readingList=new ArrayList<>();
+		for (int i = 0; i < array2.size(); i++) {
+			readingList.addAll(readingService.list( array2.get(i),1, "reading_id", "asc"));
 		}
 		//添加阅读理解
-		List<Reading> readingList = readingService.list(startReadingNumber, mastReadingNumber, "reading_id", "asc");
 		for (int i = 0; i <readingList.size() ; i++) {
 			Reading reading = readingList.get(i);
 			ResultReading resultReading=new ResultReading();
@@ -223,9 +229,9 @@ public class ResultController {
 			}
 		}
 		if(am){
-			List<Result> list = new ArrayList<>();
-			list.add(result);
-			return ResultUtil.getSlefSRSuccessList(list);
+			List<Result> l = new ArrayList<>();
+			l.add(result);
+			return ResultUtil.getSlefSRSuccessList(l);
 		}
 		return ResultUtil.getSlefSRFailList(null);
 	}
@@ -239,7 +245,7 @@ public class ResultController {
 			@RequestParam(value="accountId",required=false)Integer accountId,
 			@RequestParam(value="resultId",required=false)Integer resultId
 			,HttpSession session)  {
-		int count = resultService.count(accountId, new Date());
+		int count = resultService.count(accountId,1, new Date());
 		if(count>0){
 			//如果小于结束时间还存在有，便是在考试，不能新增
 			throw new CommonRollbackException("已经有考试在进行");
@@ -256,6 +262,7 @@ public class ResultController {
 		//60分钟
 		result.setEndDate(new Date(newdate.getTime()+60*60*1000));
 		result.setUpdateDate(newdate);
+		result.setStatus(1);
 		boolean um = resultService.update(result);
 		if(um){
 			List<Result> list = new ArrayList<>();
@@ -305,14 +312,16 @@ public class ResultController {
 	@ApiOperation(value = "考试成绩数量", notes = "考试成绩数量查询")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name="accountId",value="账户id外键",dataType="int", paramType = "query"),
+			@ApiImplicitParam(name="status",value="状态，默认1考试中，2完成",dataType="int", paramType = "query"),
 			@ApiImplicitParam(name="endDate",value="小于结束时间",dataType="datetime", paramType = "query"),
 	})
 	@RequestMapping(value = "/count", method = {RequestMethod.GET,RequestMethod.POST})
 	public @ResponseBody StateResultList<List<Integer>> count(
 			@RequestParam(value="accountId",required=false)Integer accountId,
+			@RequestParam(value="status",required=false)Integer status,
 			@RequestParam(value="endDate",required=false)Date endDate,
 			HttpSession sessiorn)  {
-		Integer count = resultService.count(accountId,endDate);
+		Integer count = resultService.count(accountId,status,endDate);
 			List<Integer> list = new ArrayList<Integer>();
 			list.add(count);
 			return ResultUtil.getSlefSRSuccessList(list);
@@ -378,6 +387,9 @@ public class ResultController {
 		//MyExcel.exportData("考试"+resultId,list,"D://home","/",null);
 		List<Result> list = new ArrayList<>();
 		Result result = resultService.load(resultId);
+		if(result.getStatus().equals(1)){
+			throw new CommonRollbackException("次考试正在进行");
+		}
 			List<ResultChoice> resultChoiceList = resultChoiceService.list(0, result.getResultId(), 1, Integer.MAX_VALUE, "result_choice_id", "asc");
 			result.setResultChoiceList(resultChoiceList);
 			List<ResultReading> resultReadingList = resultReadingService.list(result.getResultId(), 1, Integer.MAX_VALUE, "result_reading_id", "asc");

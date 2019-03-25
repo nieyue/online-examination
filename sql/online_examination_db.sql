@@ -69,11 +69,13 @@ result_id int(11) NOT NULL AUTO_INCREMENT COMMENT '考试成绩id',
 score decimal(12,2) COMMENT '分数',
 start_date datetime COMMENT '开始时间',
 end_date datetime COMMENT '结束时间',
+status tinyint DEFAULT 1 COMMENT '状态，默认1考试中，2完成',
 create_date datetime COMMENT '创建时间',
 update_date datetime COMMENT '更新时间',
 account_id int(11) COMMENT '账户id外键',
 PRIMARY KEY (result_id),
-INDEX INDEX_ACCOUNTID (account_id) USING BTREE
+INDEX INDEX_ACCOUNTID (account_id) USING BTREE,
+INDEX INDEX_STATUS (status) USING BTREE
 )ENGINE = InnoDB AUTO_INCREMENT=1000 DEFAULT CHARSET=utf8 COMMENT='考试成绩表';
 
 #创建选择题成绩表

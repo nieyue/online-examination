@@ -44,13 +44,13 @@ public class ResultServiceImpl implements ResultService {
 	}
 
 	@Override
-	public int count(Integer accountId,Date endDate) {
-		int c = resultDao.count( accountId,endDate);
+	public int count(Integer accountId,Integer status,Date endDate) {
+		int c = resultDao.count( accountId,status,endDate);
 		return c;
 	}
 
 	@Override
-	public List<Result> list(Integer accountId,Date endDate,int pageNum, int pageSize,
+	public List<Result> list(Integer accountId,Integer status,Date endDate,int pageNum, int pageSize,
 			String orderName, String orderWay) {
 		if(pageNum<1){
 			pageNum=1;
@@ -58,7 +58,7 @@ public class ResultServiceImpl implements ResultService {
 		if(pageSize<1){
 			pageSize=0;//没有数据
 		}
-		List<Result> l = resultDao.list( accountId,endDate,
+		List<Result> l = resultDao.list( accountId,status,endDate,
 				 pageNum-1, pageSize, orderName, orderWay);
 		return l;
 	}

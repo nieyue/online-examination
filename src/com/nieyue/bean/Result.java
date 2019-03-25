@@ -31,6 +31,11 @@ public class Result implements Serializable{
     @ApiModelProperty(value="分数")
     private Double score;
     /**
+     * 状态，默认1考试中，2完成
+     */
+    @ApiModelProperty(value="状态，默认1考试中，2完成")
+    private Integer status;
+    /**
      * 开始时间
      */
     @ApiModelProperty(value="开始时间")
@@ -140,6 +145,14 @@ public class Result implements Serializable{
 
     public void setResultReadingList(List<ResultReading> resultReadingList) {
         this.resultReadingList = resultReadingList;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 }
 

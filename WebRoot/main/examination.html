@@ -49,12 +49,16 @@
             M=H-shengyuM*60*1000;//除去天、小时、分的毫秒数
         S=parseInt((shenyu-shengyuD*60*60*24*1000-shengyuH*60*60*1000-shengyuM*60*1000)/1000)//除去天、小时、分的毫秒数转化为秒
 		// document.getElementById("div").innerHTML=(shengyuD+"天"+shengyuH+"小时"+shengyuM+"分"+S+"秒"+"<br>");
-		document.getElementById(element).innerHTML=shengyuH+"小时"+shengyuM+"分"+S+"秒"+"<br>";
+		if(document.getElementById(element)){
+            document.getElementById(element).innerHTML=shengyuH+"小时"+shengyuM+"分"+S+"秒"+"<br>";
+		}
+
     }
 
     //判断是否已经开始
 	business.resultIsStart=function(){
-		business.params.endDate=myUtils.timeStampToDate(new Date());
+		business.params.status=1;
+		//business.params.endDate=myUtils.timeStampToDate(new Date());
         business.getList({
             countUrl:'/result/count',
             listUrl:'/result/list',

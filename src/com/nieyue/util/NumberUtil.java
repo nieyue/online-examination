@@ -1,6 +1,11 @@
 package com.nieyue.util;
 
+import org.apache.poi.ss.formula.functions.T;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -9,7 +14,7 @@ import java.util.regex.Pattern;
  * @author yy
  *
  */
-public class NumberUtil {
+public class NumberUtil<T> {
 	/**
 	 * 是否数字
 	 * @param str
@@ -26,6 +31,31 @@ public class NumberUtil {
 		   }
 		   return true;
 		}
+	/**
+	 * 随机选择count个
+	 * @param list 待选列表
+	 * @param count 选择数量
+	 * @return
+	 */
+	public  List<T> getRandomArrayElements(List<T> list, Integer count) {
+		List<T> shuffled = list;
+		int i = list.size();
+		int min = i - count;
+		if(min<0){
+			//选择的数量比总数多
+			count=i;
+			min=0;
+		}
+		T temp;
+		int  index;
+		while (i-- > min) {
+			index =new Random().nextInt(i + 1);
+			temp = shuffled.get(index);
+			shuffled.set(index,shuffled.get(i));
+			shuffled.set(i,temp);
+		}
+		return shuffled.subList(min,list.size());
+	}
 	/**
 	 * 数字转换工具
 	 * @param str
@@ -173,7 +203,12 @@ public class NumberUtil {
 	        System.out.println("一万:"+chineseToNumber("一万"));  
 	        System.out.println("一千零一十五:"+chineseToNumber("一千零一十五"));  
 	        System.out.println("一千:"+chineseToNumber("一千"));  
-	        System.out.println("一亿:"+chineseToNumber("一亿")); 
+	        System.out.println("一亿:"+chineseToNumber("一亿"));
+		List<String> list =new ArrayList<>();
+		for (int i = 0; i < 10; i++) {
+			list.add("测试"+(i+1));
+		}
+		System.out.println(new NumberUtil().getRandomArrayElements(list,10));
 		   
 	}
 }

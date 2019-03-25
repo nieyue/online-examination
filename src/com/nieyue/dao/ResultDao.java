@@ -26,11 +26,13 @@ public interface ResultDao {
     /** 数目 */
     public int count(
             @Param("accountId") Integer accountId,
+            @Param("status") Integer status,
             @Param("endDate") Date endDate
     );
     /** 列表 */
     public List<Result> list(
             @Param("accountId") Integer accountId,
+            @Param("status") Integer status,
             @Param("endDate") Date endDate,
             @Param("pageNum") int pageNum,
             @Param("pageSize") int pageSize,

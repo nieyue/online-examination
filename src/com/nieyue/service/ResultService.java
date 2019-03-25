@@ -22,11 +22,13 @@ public interface ResultService {
 	/** 数目 */
 	public int count(
             Integer accountId,
+            Integer status,
             Date endDate
     );
 	/** 列表 */
 	public List<Result> list(
             Integer accountId,
+            Integer status,
             Date endDate,
             int pageNum,
             int pageSize,
