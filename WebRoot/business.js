@@ -282,7 +282,7 @@ var business={
 						type:"post",
 						success:function(data){
 							if(data.code==200){
-								myUtils.myLoadingToast(data.msg);
+								//myUtils.myLoadingToast(data.msg);
 								business[p.data]=data.data;
 								  if(typeof p.success=='function'){
 				                         p.success(business[p.data]);
@@ -318,7 +318,7 @@ var business={
             success: function(data){
             	if (data.code == 200) {
                     //console.log(data.data)
-            		myUtils.myLoadingToast(data.msg);
+            		//myUtils.myLoadingToast(data.msg);
                     //属性获取
                     for(var name in data.data){
                     	business[p.data]=name;

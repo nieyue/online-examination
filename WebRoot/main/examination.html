@@ -107,7 +107,7 @@
 							var resultChoice=resultReading.resultChoiceList[j];
 							var jsonstr=JSON.stringify(resultChoice).replace(/"/g,"'");
 							resultReadingResultChoiceHtml+='<div style="margin:15px 0">\n' +
-									'\t\t\t\t\t<div>'+(i+1)+'.'+resultChoice.question+'</div>\n' +
+									'\t\t\t\t\t<div>'+(j+1)+'.'+resultChoice.question+'</div>\n' +
 									'\t\t\t\t\t<div>\n' +
 									'\t\t\t\t\t\t<span id="a'+resultChoice.resultChoiceId+'" onclick="business.self.selectResultChoice(\'a\''+','+jsonstr+')" class="btn btn-default">a.'+resultChoice.a+'</span>\n' +
 									'\t\t\t\t\t\t<span id="b'+resultChoice.resultChoiceId+'" onclick="business.self.selectResultChoice(\'b\''+','+jsonstr+')" class="btn btn-default">b.'+resultChoice.b+'</span>\n' +
